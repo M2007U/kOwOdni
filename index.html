@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>kOwOdni</title>
+    <link rel="stylesheet" href="styles.css" >
+</head>
+<body id="HTML_body" style="font-family:Calibri, Consolas, 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;background-color: black;">
+    <div class="centerRow">
+        <canvas id="kanvas" width="401" height="401"></canvas>
+    </div>
+    <div style="height: 80px;"></div>
+    <div class="centerRow">
+        <div class="settingsBox" style="width:300px;height:150px;color:white;">
+            <font style="font-size:25px;">Resonance frequency & Mode Functions </font><br>
+            <br>
+            <textarea id="field_ResMode" style="background-color: transparent;border-style: solid 1px;color:white" ></textarea>
+        </div>
+        <div class="settingsBox" style="width:125px;height:150px;color:white;">
+            <font style="font-size:25px;">other</font><br>
+            <br>
+            <input type="checkbox" id="field_checkBox_snap">snap<br>
+        </div>
+        <div class="settingsBox" style="width:125px;height:150px;color:white;">
+            <font style="font-size:25px;">Runtime Settings </font><br>
+            <br>
+            Current Frequency : <input type="number" id="field_Freq" inputmode="numeric" pattern="[0-9]*" style="width:80px" value="60"><br>
+        </div>
+
+
+
+
+
+        
+    </div>
+    <script src="main.js"></script>
+</body>

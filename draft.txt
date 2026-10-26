@@ -1,0 +1,10 @@
+sin(n * pi * x) * sin(m * pi * y) - sin(m * pi * x) * sin(n * pi * y)
+cos(n * pi * x) * cos(m * pi * y) - cos(m * pi * x) * cos(n * pi * y)
+
+
+sin(4 * pi * x) * sin(5 * pi * y) - sin(5 * pi * x) * sin(4 * pi * y)
+cos(3 * pi * x) * cos(4 * pi * y) - cos(4 * pi * x) * cos(3 * pi * y)
+
+//
+
+can a worker summon another worker ?
