@@ -67,6 +67,7 @@ const ctx = canvas.getContext("2d");
 const HTML_Body = POwO_docgetel("HTML_body")
 
 const field_ResMode = POwO_docgetel("field_ResMode")
+const field_ResAccept = POwO_docgetel("field_ResAccept")
 
 const field_plotXmin = POwO_docgetel("field_plotXmin")
 const field_plotXmax = POwO_docgetel("field_plotXmax")
@@ -82,7 +83,7 @@ const field_color_B = POwO_docgetel("field_color_B")
 
 //setup
 var GLOBAL_Res = [] //an array of numbers
-var GLOBAL_Res_AcceptanceRadius = 16 //what is the radius that a mode can accept a frequency ? eg : say a mode resoFreq = 3000, if the radius is 16, then 3000-16 or 3000+16 can excite the mode
+var GLOBAL_Res_AcceptanceRadius = 32 //what is the radius that a mode can accept a frequency ? eg : say a mode resoFreq = 3000, if the radius is 16, then 3000-16 or 3000+16 can excite the mode
 var GLOBAL_Mode = [] //an array of strings, strings are Math functions
 var GLOBAL_freq = 0
 
@@ -271,6 +272,11 @@ POwO_PLOT_Phase1()
 
 field_ResMode.addEventListener("change", (event) => {
     POwO_PLOT_Phase1();
+});
+
+field_ResAccept.addEventListener("change", (event) => {
+    GLOBAL_Res_AcceptanceRadius = Number( field_ResAccept.value )
+    POwO_FreqChangeDrawCanvas()
 });
 
 
