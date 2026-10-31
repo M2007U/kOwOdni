@@ -297,6 +297,11 @@ field_plotYmax.addEventListener("change", (event) => {
 
 
 
+field_plotZheight.addEventListener("change" , (event) => {
+    GLOBAL_sliceHeight = Number(field_plotZheight.value)
+    POwO_FreqChangeDrawCanvas()
+})
+
 field_color_R.addEventListener("change" , (event) => {
     GLOBAL_color_R = Number(field_color_R.value)
     POwO_FreqChangeDrawCanvas()
@@ -319,7 +324,15 @@ window.addEventListener("message", (event) =>
 });
 
 const field_SettingsRow = POwO_docgetel("field_SettingsRow")
-field_SettingsRow.hidden = true //by default
+const field_ShowCanvas = POwO_docgetel("field_showCanvas")
 canvas.addEventListener("click" , (event) => {
-    field_SettingsRow.hidden = !field_SettingsRow.hidden
+    canvas.style.display = "none"
+    field_SettingsRow.style.display = "flex"
 })
+field_ShowCanvas.addEventListener("click" , (event) => {
+    canvas.style.display = "block"
+    field_SettingsRow.style.display = "none"
+} )
+//default
+canvas.style.display = "block"
+field_SettingsRow.style.display = "none"

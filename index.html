@@ -10,22 +10,24 @@
     <div class="centerRow">
         <canvas id="kanvas" width="401" height="401"></canvas>
     </div>
-    <div style="height: 80px;"></div>
     <div class="centerRow" id="field_SettingsRow" >
-        <div class="settingsBox" style="width:300px;height:300px;color:white;">
+        <div class="settingsBox" style="width:225px;height:300px;color:white;">
             <font style="font-size:25px;">Resonance frequency & Mode Functions </font><br>
             <br>
-            <textarea id="field_ResMode" style="background-color: transparent;border-style: solid 1px;color:white;width:250px;height:200px;resize:none;" ></textarea>
+            <textarea id="field_ResMode" style="background-color: transparent;border-style: solid 1px;color:white;width:200px;height:200px;resize:none;" ></textarea>
         </div>
-        <div class="settingsBox" style="width:350px;height:300px;color:white;">
+        <div class="settingsBox" style="width:180px;height:300px;color:white;">
             <font style="font-size:25px;">Other Settings </font><br>
             <br>
-            X min max Range : <input type="number" id="field_plotXmin" style="width:80px" value="-1"> ~ <input type="number" id="field_plotXmax" style="width:80px" value="1">  <br>
-            Y min max Range : <input type="number" id="field_plotYmin" style="width:80px" value="-1"> ~ <input type="number" id="field_plotYmax" style="width:80px" value="1">  <br>
-            Slice Height : <input type="number" id="field_plotZheight" style="width:80px" value="0.05"> <br>
-            Color R : <input type="number" id="field_color_R" style="width:80px" value="255"> <br>
-            Color G : <input type="number" id="field_color_G" style="width:80px" value="255"> <br>
-            Color B : <input type="number" id="field_color_B" style="width:80px" value="255"> <br>
+            X Range : <input type="number" id="field_plotXmin" style="width:40px" value="-1"> ~ <input type="number" id="field_plotXmax" style="width:40px" value="1">  <br>
+            Y Range : <input type="number" id="field_plotYmin" style="width:40px" value="-1"> ~ <input type="number" id="field_plotYmax" style="width:40px" value="1">  <br>
+            Slice Height : <input type="number" id="field_plotZheight" style="width:40px" value="0.05"> <br>
+            Color R : <input type="number" id="field_color_R" style="width:40px" value="255"> <br>
+            Color G : <input type="number" id="field_color_G" style="width:40px" value="255"> <br>
+            Color B : <input type="number" id="field_color_B" style="width:40px" value="255"> <br>
+            <br>
+            <br>
+            <div class="button" id="field_showCanvas" style="width:120px;color:black;background-color:#fc0;" >back to canvas</div>
         </div>
     </div>
     <script src="main.js"></script>
