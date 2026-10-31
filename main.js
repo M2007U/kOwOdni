@@ -67,13 +67,24 @@ const ctx = canvas.getContext("2d");
 const HTML_Body = POwO_docgetel("HTML_body")
 
 const field_ResMode = POwO_docgetel("field_ResMode")
-const field_freq = POwO_docgetel("field_Freq")
+
+const field_plotXmin = POwO_docgetel("field_plotXmin")
+const field_plotXmax = POwO_docgetel("field_plotXmax")
+const field_plotYmin = POwO_docgetel("field_plotYmin")
+const field_plotYmax = POwO_docgetel("field_plotYmax")
+const field_plotZheight = POwO_docgetel("field_plotZheight")
+
+const field_color_R = POwO_docgetel("field_color_R")
+const field_color_G = POwO_docgetel("field_color_G")
+const field_color_B = POwO_docgetel("field_color_B")
+
+
 
 //setup
-var GLOBAL_Res = []
+var GLOBAL_Res = [] //an array of numbers
 var GLOBAL_Res_AcceptanceRadius = 16 //what is the radius that a mode can accept a frequency ? eg : say a mode resoFreq = 3000, if the radius is 16, then 3000-16 or 3000+16 can excite the mode
-var GLOBAL_Mode = []
-var GLOBAL_freq = Number(field_freq.value)
+var GLOBAL_Mode = [] //an array of strings, strings are Math functions
+var GLOBAL_freq = 0
 
 //runtime render
 var GLOBAL_workers = []
@@ -81,7 +92,16 @@ var GLOBAL_plate = []
 var GLOBAL_flagDone = []
 
 //runtime view
+var GLOBAL_plotXmin = -1
+var GLOBAL_plotXmax = 1
+var GLOBAL_plotYmin = -1
+var GLOBAL_plotYmax = 1
 var GLOBAL_sliceHeight = 0.05 //the whole 3D shape is plot, how thin should the slice we see be ?
+
+//visuals
+var GLOBAL_color_R = 255
+var GLOBAL_color_G = 255
+var GLOBAL_color_B = 255
 
 //bench mark
 var BENCH_phase1start = 0
@@ -129,6 +149,7 @@ function POwO_PLOT_Phase1()
 
 function POwO_PLOT_Phase2()
 {
+    //draw the shape functions
     //array of workers, give them the datas to plot, put result at another array
     BENCH_phase2start = performance.now()
     console.log("Phase 2 start ")
@@ -146,101 +167,56 @@ function POwO_PLOT_Phase2()
         GLOBAL_flagDone.push(false)
 
         //assign work
-        GLOBAL_workers[i].postMessage({f:GLOBAL_Mode[i] , w:canvas.width , h:canvas.height , Xmin:-1 , Xmax:1 , Ymin:-1 , Ymax:1 })
+        GLOBAL_workers[i].postMessage({f:GLOBAL_Mode[i] , w:canvas.width , h:canvas.height , Xmin:GLOBAL_plotXmin, Xmax:GLOBAL_plotXmax, Ymin:GLOBAL_plotYmin, Ymax:GLOBAL_plotYmax})
         
         //when done
         GLOBAL_workers[i].onmessage = (event) =>
         {
             GLOBAL_plate[i] = new Float64Array(event.data) //put the result in the plate
             GLOBAL_flagDone[i] = true
-            POwO_PLOT_Phase3() //request to goto nest phase
+            POwO_FreqChangeDrawCanvas() //request to goto nest phase
         }
         
     }
 }
 
-function POwO_PLOT_Phase3()
+function POwO_FreqChangeDrawCanvas()
 {
+    //check if current frequency excites modes
     //multiply everything by Reso
-    //now GLOBAL_plate has everything
+    //now GLOBAL_plate has every shape function stand by
     console.log("Phase 3 trigger")
 
     //vibe check, if all the workers are done
     if ( !POwO_Bool_ArrayAND(GLOBAL_flagDone) ){console.log("Phase 3 wait") ; return}
-    console.log("Phase 3 start")
-    BENCH_phase3start = performance.now()
 
-    //clean
-    GLOBAL_workers = []
-    GLOBAL_flagDone = []
-
+    //add everything
+    let temp_SumArray = new Float64Array( canvas.width * canvas.height )
     for(let i = 0 ; i < GLOBAL_Res.length ; i++)
     {
-        //setup
-        let worker = new Worker("OwOrker_scalar.js")
-        GLOBAL_workers.push(worker)
-        GLOBAL_flagDone.push(false)
+        let ResoResult = POwO_Math_Reso(GLOBAL_freq , GLOBAL_Res[i] ,GLOBAL_Res_AcceptanceRadius)
 
-        //assign
-        GLOBAL_workers[i].postMessage({ a:GLOBAL_plate[i] , s:POwO_Math_Reso(GLOBAL_freq , GLOBAL_Res[i] ,GLOBAL_Res_AcceptanceRadius)  })
-
-        //when done
-        GLOBAL_workers[i].onmessage = (event) =>
+        if (ResoResult > 0)
         {
-            GLOBAL_plate[i] = new Float64Array(event.data)
-            GLOBAL_flagDone[i] = true
-            POwO_PLOT_Phase4()
+            for(let j = 0 ; j < temp_SumArray.length ; j ++)
+            {
+                temp_SumArray[j] += GLOBAL_plate[i][j] * ResoResult
+            }
         }
     }
 
-}
 
-function POwO_PLOT_Phase4()
-{
-    //add all the array from each ModeRes
 
-    //vibe check, if all the workers are done
-    console.log("Phase 4 trigger")
-    if ( !POwO_Bool_ArrayAND(GLOBAL_flagDone) ){console.log("Phase 4 wait") ; return}
-    console.log("Phase 4 start")
-    BENCH_phase4start = performance.now()
-
-    
-
-    let SumArray = new Float64Array( canvas.width * canvas.height )
-    for( let i = 0 ; i < SumArray.length ; i++ ) //through every flatout pixels
-    {
-        let temp_sum = 0
-        for( j = 0 ; j < GLOBAL_plate.length ; j++ ) //through every ResMode
-        {
-            temp_sum += GLOBAL_plate[j][i]
-        }
-        SumArray[i] = temp_sum
-    }
-
-    GLOBAL_plate = []
-    GLOBAL_plate.push( SumArray ) //this is the final flat array to be drawn onto the canvas
-    POwO_PLOT_Phase5()
-}
-
-function POwO_PLOT_Phase5()
-{
-    // step 5 : plot final onto canvas
-    console.log("Phase 5 start")
-    BENCH_phase5start = performance.now()
-
-    let centerX = Math.floor(canvas.width/2)
-    let centerY = Math.floor(canvas.height/2)
+    //draw on canvas
     let ImageData = ctx.createImageData(canvas.width, canvas.height);
-
-    for(let y = 0 ; y < canvas.height ; y++)
+    for(let y = 0 ; y < canvas.height ; y++) //for every row
     {
-        for(let x = 0 ; x < canvas.width ; x++)
+        for(let x = 0 ; x < canvas.width ; x++) //for every column
         {
             let PixelIndex = ( y * canvas.width + x ) * 4
             let giveTransparency = 0
 
-            if ( Math.abs(GLOBAL_plate[0][y * canvas.width + x]) < GLOBAL_sliceHeight )
+            if ( Math.abs(temp_SumArray[y * canvas.width + x]) < GLOBAL_sliceHeight )
             {
                 giveTransparency = 255
             }
@@ -249,36 +225,17 @@ function POwO_PLOT_Phase5()
                 giveTransparency = 0
             }
 
-            ImageData.data[PixelIndex + 0] = 255
-            ImageData.data[PixelIndex + 1] = 255
-            ImageData.data[PixelIndex + 2] = 255
+            ImageData.data[PixelIndex + 0] = GLOBAL_color_R
+            ImageData.data[PixelIndex + 1] = GLOBAL_color_G
+            ImageData.data[PixelIndex + 2] = GLOBAL_color_B
             ImageData.data[PixelIndex + 3] = giveTransparency
         }
     }
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.putImageData(ImageData, 0, 0);
 
-    console.log("Phase All done")
-    BENCH_phaseAllDone = performance.now()
 
-    POwO_PLOT_BenchResult()
-}
 
-function POwO_PLOT_BenchResult()
-{
-    let PrintString = 
-    "Bench result : \n" +
-    "\n" +
-    "Phase 1 (interpret user input) : " + (BENCH_phase2start - BENCH_phase1start).toFixed(3) + "\n" +
-    "Phase 2 (phi(x,y))             : " + (BENCH_phase3start - BENCH_phase2start).toFixed(3) + "\n" +
-    "Phase 3 (scale by R(f))        : " + (BENCH_phase4start - BENCH_phase3start).toFixed(3) + "\n" +
-    "Phase 4 (sum)                  : " + (BENCH_phase5start - BENCH_phase4start).toFixed(3) + "\n" +
-    "Phase 5 (print canvas)         : " + (BENCH_phaseAllDone - BENCH_phase5start).toFixed(3)  + "\n" +
-    "\n" +
-    "Over All                       : " + (BENCH_phaseAllDone - BENCH_phase1start).toFixed(3)
-    
-    console.log(PrintString)
 }
 
 
@@ -303,6 +260,66 @@ worker_temp.onmessage = (event) =>
 */
 
 console.log("start")
-field_ResMode.value = "1000,sin(4 * pi * x) * sin(5 * pi * y) - sin(5 * pi * x) * sin(4 * pi * y)\n1008,cos(3 * pi * x) * cos(4 * pi * y) - cos(4 * pi * x) * cos(3 * pi * y)"
-GLOBAL_freq = 1000
+field_ResMode.value = "1000,abs(sin(2 * pi * x) * sin(3 * pi * y) - sin(3 * pi * x) * sin(2 * pi * y))*0.5\n1008,abs(cos(2 * pi * x) * cos(1 * pi * y) + cos(1 * pi * x) * cos(2 * pi * y))*(-0.5)"
+
+//field_ResMode.value = "1000,sin(2 * pi * x) * sin(3 * pi * y) - sin(3 * pi * x) * sin(2 * pi * y)"
+//field_ResMode.value = "1000,cos(2 * pi * x) * cos(1 * pi * y) + cos(1 * pi * x) * cos(2 * pi * y)"
+GLOBAL_freq = 1007
 POwO_PLOT_Phase1()
+
+
+
+field_ResMode.addEventListener("change", (event) => {
+    POwO_PLOT_Phase1();
+});
+
+
+
+field_plotXmin.addEventListener("change", (event) => {
+    GLOBAL_plotXmin = Number(field_plotXmin.value)
+    POwO_PLOT_Phase1();
+})
+
+field_plotXmax.addEventListener("change", (event) => {
+    GLOBAL_plotXmax = Number(field_plotXmax.value)
+    POwO_PLOT_Phase1();
+})
+
+field_plotYmin.addEventListener("change", (event) => {
+    GLOBAL_plotYmin = Number(field_plotYmin.value)
+    POwO_PLOT_Phase1();
+})
+
+field_plotYmax.addEventListener("change", (event) => {
+    GLOBAL_plotYmax = Number(field_plotYmax.value)
+    POwO_PLOT_Phase1();
+})
+
+
+
+field_color_R.addEventListener("change" , (event) => {
+    GLOBAL_color_R = Number(field_color_R.value)
+    POwO_FreqChangeDrawCanvas()
+})
+
+field_color_G.addEventListener("change" , (event) => {
+    GLOBAL_color_G = Number(field_color_G.value)
+    POwO_FreqChangeDrawCanvas()
+})
+
+field_color_B.addEventListener("change" , (event) => {
+    GLOBAL_color_B = Number(field_color_B.value)
+    POwO_FreqChangeDrawCanvas()
+})
+
+window.addEventListener("message", (event) =>
+{
+    GLOBAL_freq = Number(event.data);
+    POwO_FreqChangeDrawCanvas();
+});
+
+const field_SettingsRow = POwO_docgetel("field_SettingsRow")
+field_SettingsRow.hidden = true //by default
+canvas.addEventListener("click" , (event) => {
+    field_SettingsRow.hidden = !field_SettingsRow.hidden
+})
